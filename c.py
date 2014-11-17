@@ -48,14 +48,14 @@ def c_function_definiton(ret_type, name, arg_list=[], comment=''):
     return lambda code: c_comment(comment) + concat2([c_function_signature(ret_type, name, arg_list)], curly_brackets(flat_code(code)))
 
 
-def c_for(init, expr, update):
-    return loop(['for(%s; %s; %s)' % (init, expr, update)])
+def c_for(init, cond, update):
+    return loop(['for(%s; %s; %s)' % (init, cond, update)])
 
-def c_while(expr):
-    return loop(['while(%s)' % (expr)])
+def c_while(cond):
+    return loop(['while(%s)' % (cond)])
 
-def c_do_while(expr):
-    return loop(['do'], ['while(%s)' % expr])
+def c_do_while(cond):
+    return loop(['do'], ['while(%s)' % cond])
 
 def c_comment(c):
     if isinstance(c, str):
@@ -133,10 +133,12 @@ def c_mDefine(name, val=''):
 def c_mdef_ifn(name, val=''):
     return c_mifelse(('!defined(%s)' % name, c_mdefine(name, val)))
 
-def c_header_guard(name, code):
-    guard = c_mdef_ifn(name)
-    eif = guard.pop()
-    return guard + code + [eif]
+def c_header_guard(name):
+    def f(code):
+        guard = c_mdef_ifn(name)
+        eif = guard.pop()
+        return guard + code + [eif]
+    return f
 
 
 def c_char_literal(c):

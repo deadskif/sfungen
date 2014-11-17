@@ -24,6 +24,9 @@ def unzip(a):
     return tuple(map(list, zip(*a)))
 # Base generatirs
 def template(temps, d):
+    """
+    Apply d to templates.
+    """
     def _t(x):
         try:
             return x % d
@@ -38,19 +41,30 @@ class NoIndentStr(str):
     pass
 
 def indent_str(s):
+    """Indent string, but not NoIndentStr or empty string."""
     if isinstance(s, NoIndentStr) or s == '':
         return s
     else:
         return DEFAULT_INDENT + s
 
 def indent(code):
-    print code
+    """Indent strings."""
+    #print code
     return map(indent_str, code)
 
 def block(left, code, right):
+    """
+    Make code block in form:
+    <left>
+        <code>
+    <right>
+    """
     return [left] + indent(code) + [right]
 
 def join(code):
+    """
+    Transform strings list in one code string.
+    """
     try:
         return "\n".join(code) + '\n'
     except TypeError as te:
@@ -58,25 +72,40 @@ def join(code):
         raise te
 
 def generate(f, code):
+    """
+    Writes strings list into the file.
+    """
     f.write(join(code))
 
 def curly_brackets(code):
+    """
+    Transform code into '{' code '}'
+    """
     return block('{', code, '}')
 
 def square_brackets(code):
+    """
+    Transform code into '[' code ']'
+    """
     return block('[', code, ']')
 
 def angle_brackets(code):
+    """
+    Transform code into '<' code '>'
+    """
     return block('<', code, '>')
 
 def concat2(a,b):
-    """ ['a','b','c'],['one','two','free'] -> ['a','b','cone','two','free'] """
+    """Transforms ['a','b','c'],['one','two','free'] -> ['a','b','cone','two','free']"""
     f_b = b.pop(0)
     a[-1] += f_b
     return a + b
 concat = functools.partial(reduce, concat2)
 
 def last_line_affix(code, s):
+    """
+    Add s to last line of code.
+    """
     code[-1]+=s
     return code
 
@@ -87,10 +116,19 @@ def modify_if(expr, mod_cb):
 
 #comma_separated = modify_if_not_str(lambda val: ", ".join(val))
 def comma_separated(val_list):
+    """
+    Generates comma-separated string from val_list, or just returns val_list string.
+        """
     return val_list if isinstance(val_list, str) else ", ".join(val_list)
 
 def loop(pre, post=[]):
+    """
+    Returns function, which transforms its argument into loop <pre> <loop_body> <post>.
+    """
     def f(code):
+        """
+        Make %s code %s loop.
+        """ % (pre, post)
         if code == None:
             return pre + post
         elif isinstance(code, str):
@@ -119,6 +157,9 @@ def code(*args):
     return flat_code([a for a in args])
 
 def flat_code(lst):
+    """
+    Transform list of lists/strings into strings list.
+    """
     if isinstance(lst, str):
         return [lst]
     elif isinstance(lst, list):
@@ -132,6 +173,9 @@ def flat_code(lst):
 #    except TypeError as te:
 #        raise te
 def string_separated(arr):
+    """
+    Transform list of strings list into strings list, separate them with empty strings.
+    """
     #print arr
     return reduce(lambda x,y: flat_code(x) + [''] + flat_code(y), arr)
     #return functools.reduce(_ss, arr)
