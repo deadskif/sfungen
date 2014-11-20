@@ -17,6 +17,7 @@
 # If not, see <http://www.gnu.org/licenses/>.
 #
 import functools
+from multimethod import multimethod
 
 DEFAULT_INDENT = '    '
 
