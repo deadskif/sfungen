@@ -17,9 +17,35 @@
 # If not, see <http://www.gnu.org/licenses/>.
 #
 import functools
+import types
 from multimethod import multimethod
 
 DEFAULT_INDENT = '    '
+from functools import wraps
+
+def code_generators(*generators):
+
+    def decorator(cls):
+        for g in generators:
+            gens_name = '_get_%s_generators' % g
+            def _get_generators(cls):
+                return (a for a in dir(cls) if g in getattr(getattr(cls,a), '_i_am_code_generator', []))
+                #attrs = (getattr(cls, an) for an in dir(cls))
+                #return (a for a in attrs if g in getattr(a, '_i_am_code_generator', []))
+                #return filter(lambda a: g in getattr(a, '_i_am_code_generator', []), attrs)
+                        
+            def _get_generated(self):
+                return (getattr(self, g)() for g in getattr(self, gens_name)())
+            setattr(cls, gens_name, classmethod(_get_generators))
+            setattr(cls, '_get_%s_generated' % g,_get_generated)
+        return cls
+    return decorator
+
+def code_generator(*generators):
+    def decorator(func):
+        func._i_am_code_generator = generators
+        return func
+    return decorator
 
 def unzip(a):
     return tuple(map(list, zip(*a)))
@@ -66,6 +92,7 @@ def join(code):
     """
     Transform strings list in one code string.
     """
+    code = flat_code(code)
     try:
         return "\n".join(code) + '\n'
     except TypeError as te:
@@ -165,8 +192,15 @@ def flat_code(lst):
         return [lst]
     elif isinstance(lst, list):
         return reduce(lambda x,y: x+y, [flat_code(x) for x in lst], [])
+    elif isinstance(lst, (types.FunctionType, types.MethodType)):
+        @wraps(func)
+        def wrapper(*args, **kwargs):
+            return flat_code(func(*args, **kwargs))
+        return wrapper
     else:
         TypeError("Bad type for flat_code(%s)" % type(lst))
+
+
 
 #def _ss(x,y):
 #    try:

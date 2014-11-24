@@ -12,7 +12,7 @@ class MultiMethod(object):
         types = tuple(arg.__class__ for arg in args) # a generator expression!
         function = self.typemap.get(types)
         if function is None:
-            raise TypeError("no match")
+            raise TypeError("no match %s" % types)
         return function(*args)
     def register(self, types, function):
         if types in self.typemap:

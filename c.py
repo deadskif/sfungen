@@ -25,17 +25,24 @@ def curly_brackets_semicolon(code):
 
 @multimethod(dict)
 def c_enum_initializer(val_list_dict):
-    return c_enum_initializer(val_list_tuple.items())
+    return c_enum_initializer(val_list_dict.items())
 
 @multimethod(list)
 def c_enum_initializer(val_list_tuple):
-    def _init(var, init):
+    def _init(vi):
+        if isinstance(vi, tuple):
+            var = vi[0]
+            init = vi[1]
+        else:
+            var = vi
+            init = None
+
         if init is not None and init != '':
             return '%s = %s' % (var, init)
-        else
+        else:
             return '%s' % var
         
-    return [comma_separated([_init(var, init) for var, init in val_list_tuple])]
+    return [comma_separated([_init(vi) for vi in val_list_tuple])]
 
 def c_enum(val_list, name=''):
     return ['enum ' + name] + curly_brackets_semicolon(c_enum_initializer(val_list))
@@ -146,6 +153,7 @@ def c_mdef_ifn(name, val=''):
 
 def c_header_guard(name):
     def f(code):
+        print "%s" %code
         guard = c_mdef_ifn(name)
         eif = guard.pop()
         return guard + code + [eif]
