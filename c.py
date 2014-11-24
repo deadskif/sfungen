@@ -18,6 +18,7 @@
 
 from base import *
 
+C_STR_LITERAL_NO_ESC = string.ascii_letters + string.digits + string.punctuation + ' '
 # C specific generators
 
 def curly_brackets_semicolon(code):
@@ -143,13 +144,22 @@ def c_include(name, system=True):
 #    return c_mifelse(expr_codes, else_code)
 
 def c_mdefine(name, val=''):
-    return [NoIndentStr('#define %s %s' % (name, val))]
+    if isinstance(val, str):
+        return [NoIndentStr('#define %s %s' % (name, val))]
+    else:
+        val = indent(block('({', val, '})'))
+        last_line = val.pop()
+        val = map(lambda x: x + ' \\', val)
+        val.append(last_line)
+        return map(NoIndentStr, concat2(['#define %s ' % name], val))
+
 def c_mdefine_do(name, val=[]):
     val = indent(c_do_while(0)(val))
     last_line = val.pop()
     val = map(lambda x: x + ' \\', val)
     val.append(last_line)
     return map(NoIndentStr, concat2(['#define %s ' % name], val))
+
 def c_mDefine(name, val=''):
     return c_mdefine(name.upper(), val)
 
@@ -165,8 +175,16 @@ def c_header_guard(name):
     return f
 
 
+
 def c_char_literal(c):
-    return "'%c'" % c if c in string.printable else hex(c)
+    if isinstance(c, str):
+        return c
+    s = '%c' % c
+    return "'%c'" % s if s in C_STR_LITERAL_NO_ESC else hex(c)
 
 def c_str_literal(s):
-    return '"%s"' % ''.join([c if c in string.printable else '\\x'+hex(c) for c in s])
+    return '"%s"' % ''.join([c if c in C_STR_LITERAL_NO_ESC else '\\x'+hex(c) for c in s])
+
+#def c_str_esc(s):
+#    def _esc(c):
+#        if c in '\n'

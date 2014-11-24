@@ -124,6 +124,13 @@ def angle_brackets(code):
     """
     return block('<', code, '>')
 
+def round_brackets(code):
+    """
+    Transform code into '(' code ')'
+    """
+    return block('(', code, ')')
+
+
 def concat2(a,b):
     """Transforms ['a','b','c'],['one','two','free'] -> ['a','b','cone','two','free']"""
     f_b = b.pop(0)
@@ -147,7 +154,8 @@ def modify_if(expr, mod_cb):
 def comma_separated(val_list):
     """
     Generates comma-separated string from val_list, or just returns val_list string.
-        """
+    """
+    print val_list
     return val_list if isinstance(val_list, str) else ", ".join(val_list)
 
 def loop(pre, post=[]):
