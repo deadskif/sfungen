@@ -18,6 +18,7 @@
 #
 import functools
 import types
+import string
 from multimethod import multimethod
 
 DEFAULT_INDENT = '    '
@@ -191,11 +192,15 @@ def flat_code(lst):
     if isinstance(lst, str):
         return [lst]
     elif isinstance(lst, list):
-        return reduce(lambda x,y: x+y, [flat_code(x) for x in lst], [])
+        try:
+            return reduce(lambda x,y: x+y, [flat_code(x) for x in lst], [])
+        except TypeError as te:
+            print "Some fuck up with %s" % lst
+            raise te
     elif isinstance(lst, (types.FunctionType, types.MethodType)):
-        @wraps(func)
+        @wraps(lst)
         def wrapper(*args, **kwargs):
-            return flat_code(func(*args, **kwargs))
+            return flat_code(lst(*args, **kwargs))
         return wrapper
     else:
         TypeError("Bad type for flat_code(%s)" % type(lst))

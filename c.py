@@ -65,6 +65,10 @@ def c_function_declaration(ret_type, name, arg_list=[], comment=''):
 def c_function_definiton(ret_type, name, arg_list=[], comment=''):
     return lambda code: c_comment(comment) + concat2([c_function_signature(ret_type, name, arg_list)], curly_brackets(flat_code(code)))
 
+def c_var_definiton(c_type, name, init_value=''):
+    if init_value != '':
+        init_value = ' = ' + init_value
+    return [c_type + ' ' + name + init_value + ';']
 
 def c_for(init, cond, update):
     return loop(['for(%s; %s; %s)' % (init, cond, update)])
@@ -101,6 +105,7 @@ c_ifelse = ifelse(lambda e, c: ['if(%s)' % e] + indent(c),
 def c_if(cond):
     def _f(code):
         return c_ifelse((cond,code))
+    return _f
 
 def c_struct_definition(name,fields):
     return concat2('struct %s' % name, ['%s %s;' % (t, n) for t, n in fields])
@@ -162,3 +167,6 @@ def c_header_guard(name):
 
 def c_char_literal(c):
     return "'%c'" % c if c in string.printable else hex(c)
+
+def c_str_literal(s):
+    return '"%s"' % ''.join([c if c in string.printable else '\\x'+hex(c) for c in s])
