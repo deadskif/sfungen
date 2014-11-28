@@ -140,10 +140,16 @@ concat = functools.partial(reduce, concat2)
 
 def last_line_affix(code, s):
     """
-    Add s to last line of code.
+    Add s to end of last line of code.
     """
     code[-1]+=s
     return code
+
+def prefix(pre, code):
+    """
+    Add pre to begin of first line of code.
+    """
+    return concat2([pre], code)
 
 def modify_if(expr, mod_cb):
     return lambda val: mod_cb(val) if expr else val
