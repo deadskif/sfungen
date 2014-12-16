@@ -54,8 +54,9 @@ def str_c_array_declaration(c_type, name, size=''):
 def c_array_declaration(c_type, name, size='', init_values=[]):
     return ['extern ' + str_c_array_declaration(c_type, name, size) + ';']
 
-def c_array_definition(c_type, name, size='', init_values=[]):
-    return concat2([str_c_array_declaration(c_type, name, size) + '='], curly_brackets_semicolon([comma_separated(init_values)]))
+def c_array_definition(c_type, name, size='', init_values=[], items_per_str=30):
+    return concat2([str_c_array_declaration(c_type, name, size) + '='], curly_brackets_semicolon(comma_separated_list(init_values,items_per_str)))
+
 def c_static(code):
     return prefix("static ", code)
 
@@ -71,7 +72,7 @@ def c_function_declaration(ret_type, name, arg_list=[], comment='', inline=False
     prefix = 'extern' if not inline else 'static inline'
     return c_comment(comment) + [c_function_signature(ret_type, name, arg_list, prefix) + c_function_attribute(attribute) + ';']
 
-def c_function_definiton(ret_type, name, arg_list=[], comment='', inline=False):
+def c_function_definition(ret_type, name, arg_list=[], comment='', inline=False):
     prefix = '' if not inline else 'static inline'
     return lambda code: c_comment(comment) + concat2([c_function_signature(ret_type, name, arg_list, prefix)], curly_brackets(flat_code(code)))
 
@@ -123,8 +124,8 @@ def c_if(cond):
         return c_ifelse((cond,code))
     return _f
 
-def c_struct_definition(name,fields):
-    return concat2('struct %s' % name, ['%s %s;' % (t, n) for t, n in fields])
+def c_struct_definition(name,fields,affix=';'):
+    return last_line_affix(concat2(['struct %s' % name], curly_brackets(['%s %s;' % (t, n) for t, n in fields])), affix)
 
 def c_typedef():
     pass
@@ -200,7 +201,6 @@ def c_mdef_ifn(name, val=''):
 
 def c_header_guard(name):
     def f(code):
-        print "%s" %code
         guard = c_mdef_ifn(name)
         eif = guard.pop()
         return guard + code + [eif]
@@ -214,6 +214,8 @@ def c_char_literal(c):
     s = '%c' % c
     if s == "'":
         return "'\\''"
+    if s == '\\':
+        return "'\\\\'"
     return "'%c'" % s if s in C_STR_LITERAL_NO_ESC else hex(c)
 
 def c_str_literal(s):

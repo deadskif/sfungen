@@ -157,11 +157,18 @@ def modify_if(expr, mod_cb):
 #modify_if_not_str = functools.partial(lambda x: not isinstance(x, str))
 
 #comma_separated = modify_if_not_str(lambda val: ", ".join(val))
+def comma_separated_list(val_list, items_per_str=20):
+    """
+    """
+    if len(val_list) > items_per_str:
+        return [comma_separated(val_list[0:items_per_str]) + ','] + comma_separated_list(val_list[items_per_str:], items_per_str)
+    else:
+        return [comma_separated(val_list)]
+
 def comma_separated(val_list):
     """
     Generates comma-separated string from val_list, or just returns val_list string.
     """
-    print val_list
     return val_list if isinstance(val_list, str) else ", ".join(val_list)
 
 def loop(pre, post=[]):
